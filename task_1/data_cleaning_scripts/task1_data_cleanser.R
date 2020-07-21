@@ -17,6 +17,7 @@ dec_data <- dec_data %>%
          long_jump = Long.jump,
          shot_put = Shot.put,
          high_jump = High.jump,
+         run_400m = `400m`,
          hurdles_110m = `110m.hurdle`,
          discus = Discus,
          pole_vault = Pole.vault,

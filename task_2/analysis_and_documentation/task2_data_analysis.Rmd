@@ -1,0 +1,96 @@
+---
+title: "task2_analysis"
+author: "Dan McG"
+date: "21/07/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+We are going to be doing some analysis on cake ingrediants
+
+Load libriaries
+
+```{r}
+library(tidyverse)
+library(here)
+```
+
+First, lets load in our data_set
+```{r}
+cake_recipes <- read_csv(here("clean_data/cake_ingrediants_clean.csv"))
+```
+
+
+1. Which cake has the most cocoa in it?
+```{r}
+cake_recipes %>%
+  filter(str_detect(str_to_lower(ingrediant_unit), "cocoa")) %>% # filter by cocoa
+  arrange(desc(measure_amount)) %>% # arrange by the amount of table spoons
+  head(1)
+```
+ One Bowl Chocolate contains the most cocoa
+ 
+ 2. For sponge cake, how many cups of ingredients are used in total?
+ 
+```{r}
+cake_recipes %>%
+  filter(cake == "Sponge") %>% # find the sponge cake recipe
+  filter(str_detect(str_to_lower(ingrediant_unit), "[(]cup[)]")) %>% # filter by all ingrediants measured by cups
+  summarise(total_cups = sum(measure_amount)) # sum up the total amount of cups used
+```
+ 3.5 cups worth of ingrediants are used in total
+ 
+ 3. How many ingredients are measured in teaspoons?
+ 
+```{r}
+tea_spoon_occuaances <- cake_recipes %>%
+  filter(str_detect(str_to_lower(ingrediant_unit), "[(]teaspoon[)]")) # filter by recipes that use teaspoons
+  
+length(unique(tea_spoon_occuaances$ingrediant_unit)) # count unique instances of these ingrediants
+```
+ 
+There are 8 ingrediants that are measured in teaspoons 
+ 
+ 4. Which cake has the most unique ingredients?
+ 
+```{r}
+# create a table that counts how many times each ingrediant appears which will represent its 'uniqueness'
+ingrediant_uniqueness <- cake_recipes %>%
+  group_by(ingrediant_unit) %>%
+  summarise(ingrediant_count = n()) %>%
+  arrange(desc(ingrediant_count)) %>%
+  mutate(uniqueness_rank = rank(ingrediant_count, ties.method = "average")) # use the rank function to give each ingrediant a score based on how many times it appears in the data set
+
+# join our uniqueness value to our main table and then sum each cakes score
+cake_recipes %>%
+  left_join(ingrediant_uniqueness, by = "ingrediant_unit") %>%
+  group_by(cake) %>%
+  summarise(uniqueness_score = sum(uniqueness_rank)) %>% 
+  arrange(uniqueness_score)  %>%
+  head(1)
+
+
+# however this request could also be seen as the the recipe that has the most ingrediants that only appear in the data set once
+cake_recipes %>%
+  left_join(ingrediant_uniqueness, by = "ingrediant_unit") %>%
+  filter(ingrediant_count == 1) %>%
+  group_by(cake) %>%
+  summarise(uniqueness_score = sum(ingrediant_count)) %>% 
+  arrange(desc(uniqueness_score)) %>%
+  head(1)
+```
+ 
+ According to my definition, Angle Cake has the most unique ingrediants. And Angel cake also contains the most ingrediants that only appear once in the dataset
+ 
+5. Which ingredients are used only once?
+ 
+```{r}
+ingrediant_uniqueness %>%
+  filter(ingrediant_count == 1)
+```
+
+ 
+ 

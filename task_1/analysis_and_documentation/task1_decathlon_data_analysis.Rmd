@@ -53,7 +53,7 @@ dec_data_clean %>%
 
 ```{r}
 dec_data_clean %>%
-  mutate(over_50_in_400m = (`400m` > 50)) %>%
+  mutate(over_50_in_400m = (run_400m > 50)) %>% # create a new column that is a logical of whether or not athlete did the 400m over 50 seconds
   group_by(over_50_in_400m) %>% 
   summarise(average_points = mean(points))
 ```
