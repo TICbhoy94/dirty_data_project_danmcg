@@ -1,0 +1,93 @@
+---
+title: "task3_data_analysis"
+author: "Dan McG"
+date: "21/07/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+We will be carrying out some analysis on sea bird observations
+
+First lets load our libriaries
+```{r}
+library(tidyverse)
+library(here)
+```
+
+Now lets load the data set
+```{r}
+seabird_df <- read_csv(here("clean_data/seabird_data_clean.csv"))
+```
+
+1. Which bird had the most individual sightings?
+
+```{r}
+seabird_df %>%
+  group_by(species_common_name) %>%
+  summarise(individual_sightings = n()) %>%
+  arrange(desc(individual_sightings)) %>%
+  head(1)
+```
+
+The Wandering Alabtross sensi lato PL2 was had the most individual sightings with 3104 different observations
+
+2. Which bird had the highest total count?
+
+```{r}
+seabird_df %>%
+  group_by(species_common_name) %>%
+  summarise(total_count = sum(COUNT)) %>%
+  arrange(desc(total_count)) %>%
+  head(1)
+```
+
+The Black-billed gull had the hightest total count with 7732 observed
+
+3. Which bird had the highest total count above a latitude of -30?
+```{r}
+seabird_df %>%
+  filter(LAT > -30) %>%
+  group_by(species_common_name) %>%
+  summarise(total_count = sum(COUNT)) %>%
+  arrange(desc(total_count)) %>%
+  head(1)
+```
+
+The Wedge-tailed shearwater has the highest total count above a latitude of -30 with 855 observed in total
+
+4. How many different types of birds were only ever seen in groups of 1?
+```{r}
+single_sightings <- seabird_df %>%
+  group_by(species_common_name) %>% 
+  summarise(total_count = sum(COUNT), individual_sightings = n()) %>% # make additional columns that give the total number of birds oberved and the number of individual sightings
+  filter(total_count/individual_sightings == 1) # if the total number of birds observed is the same as the number of individual sightings then these birds must have only been observed by themselves
+
+count_lonely_birds <- length(unique(single_sightings$species_common_name))
+
+count_lonely_birds    
+```
+
+73 different types of birds have only ever been spotted in groups of 1
+
+5. How many penguins were seen? (Hint: there are many types of penguin)
+```{r}
+penguin_df <- seabird_df[grep("[::punct:: ]*[Pp]enguin[ ::punct::]*",seabird_df$species_common_name, ), ]
+
+no_penguin_species <- length(unique(penguin_df$species_common_name))
+
+total_no_oberved_penguins <- sum(penguin_df$COUNT, na.rm = TRUE)
+
+
+no_penguin_species
+total_no_oberved_penguins
+```
+
+There are 9 individual penguin species recorded including unidentified penguin sightings
+
+There has been a total of 158 penguins recorded
+
+
+
