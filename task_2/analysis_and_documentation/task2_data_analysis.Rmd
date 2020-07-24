@@ -1,30 +1,50 @@
 ---
-title: "task2_analysis"
+title: "Task 2 - Cake Recipe Data Analysis"
 author: "Dan McG"
 date: "21/07/2020"
-output: html_document
+output: 
+  html_document:
+    toc: TRUE
+    toc_float: TRUE
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-We are going to be doing some analysis on cake ingrediants
 
-Load libriaries
+# Cake Recipe Data Analysis Documentation  
+
+I have been asked to carry out data analysis on a cake recipes data set. In this documentation I will outline the main process I followed in order to tidy up the data set and how I have gone about the analysis.
+
+### Required Libriaries
+The following libriaries are required.
 
 ```{r}
 library(tidyverse)
 library(here)
 ```
 
-First, lets load in our data_set
+### Data Cleanser Summary
+
+The raw data was presented in two csv files:  
+  1.  cake_ingredient_code.csv - which contained ingrediants and their respective abreviations and measures  
+  2.  raw_data/cake/cake-ingredients-1961.csv - which contained a recipes for different cakes with ingrediants given in their abbreviated form
+  
+The data itself was in a good state with no obvious missing data or errors. But it was preferred that the cake recipes used the full-name for ingrediants instead of the abreviated versions. The current layout of the cake recipes wasn't particularly friendly either so I make the table longer and removed ingrediants that were not being used from each recipe. This made it much more readable what ingrediants you needed to make each cake. From there I saved the results into a separate .csv for analaysis
+
+### Data Analysis
+
+Below I will outline the steps I took to answer certain questions around the cleaned cake recipe data set
+
+First, lets load in the data_set
 ```{r}
 cake_recipes <- read_csv(here("clean_data/cake_ingrediants_clean.csv"))
 ```
 
 
-1. Which cake has the most cocoa in it?
+#### Which cake has the most cocoa in it?
+All that is needed for this task is to filter out cakes that don't have cocoa in their recipes and then sort to have the one with the most cocoa at the top of the filtered list. 
 ```{r}
 cake_recipes %>%
   filter(str_detect(str_to_lower(ingrediant_unit), "cocoa")) %>% # filter by cocoa
@@ -33,7 +53,12 @@ cake_recipes %>%
 ```
  One Bowl Chocolate contains the most cocoa
  
- 2. For sponge cake, how many cups of ingredients are used in total?
+ 
+ 
+ 
+ 
+#### How many cups of ingrediants are used in total for sponge cake?
+My interpretation of this was the question was after the total volume of ingrediants measured in cups.
  
 ```{r}
 cake_recipes %>%
@@ -41,21 +66,34 @@ cake_recipes %>%
   filter(str_detect(str_to_lower(ingrediant_unit), "[(]cup[)]")) %>% # filter by all ingrediants measured by cups
   summarise(total_cups = sum(measure_amount)) # sum up the total amount of cups used
 ```
- 3.5 cups worth of ingrediants are used in total
+ 3.5 cups worth of ingrediants are used in total for sponge cake. 
  
- 3. How many ingredients are measured in teaspoons?
+ 
+ 
+ 
+ 
+ 
+#### How many ingredients are measured in teaspoons?
+ Several ways of doing this but I decided to make a dedicated data frame to those ingrediants measured in tea spoons then see how many unique entries there are
  
 ```{r}
 tea_spoon_occuaances <- cake_recipes %>%
-  filter(str_detect(str_to_lower(ingrediant_unit), "[(]teaspoon[)]")) # filter by recipes that use teaspoons
+  filter(str_detect(str_to_lower(ingrediant_unit), "[(]teaspoon[)]"))  # filter by recipes that use teaspoons 
+  
   
 length(unique(tea_spoon_occuaances$ingrediant_unit)) # count unique instances of these ingrediants
 ```
  
 There are 8 ingrediants that are measured in teaspoons 
  
- 4. Which cake has the most unique ingredients?
  
+ 
+ 
+ #### Which cake has the most unique ingredients?
+ 
+I attempted to come up with my own definition of 'uniqueness' for this question. I counted the number of times overall each ingrediant appeared in the data set and based on that count I assigned a score to it.
+
+This uniquess score was then appended to our make cake recipe data frame and each cake was summed up to give an overall 'uniqueness score'.
 ```{r}
 # create a table that counts how many times each ingrediant appears which will represent its 'uniqueness'
 ingrediant_uniqueness <- cake_recipes %>%
@@ -83,10 +121,11 @@ cake_recipes %>%
   head(1)
 ```
  
- According to my definition, Angle Cake has the most unique ingrediants. And Angel cake also contains the most ingrediants that only appear once in the dataset
+According to my definition, Angle Cake has the most unique ingrediants. And Angel cake also contains the most ingrediants that only appear once in the dataset
  
-5. Which ingredients are used only once?
+#### Which ingredients are used only once?
  
+The leg work for this questions was already done in the previous question so was easy enough to do. 
 ```{r}
 ingrediant_uniqueness %>%
   filter(ingrediant_count == 1)

@@ -4,9 +4,10 @@
 library(tidyverse)
 library(here)
 
-# load abbreviatons
-cake_abv <- read_csv(here("raw_data/cake/cake_ingredient_code.csv"))
+# load data sets
 cake_df <- read_csv(here("raw_data/cake/cake-ingredients-1961.csv"))
+cake_abv <- read_csv(here("raw_data/cake/cake_ingredient_code.csv"))
+
 
 # convert abreviations into full names
 cake_abv <- cake_abv %>%
@@ -14,13 +15,13 @@ cake_abv <- cake_abv %>%
 
 # create a vector of all our abbreviated ingrediants
 ingrediant_names <- cake_df %>%
-  colnames() %>%
-  tail(-1)
+  colnames() %>% 
+  tail(-1) # remove 'cake' from this vector
 
 # pivot main data frame into a longer format and make a conenction to our abbreviation table
 cake_df <- cake_df %>%
-  pivot_longer(cols = ingrediant_names, names_to = "code", values_to = "measure_amount") %>% # pivot table 
-  drop_na()  %>% # drop rows of ingediants that are not used in different cakes
+  pivot_longer(cols = ingrediant_names, names_to = "code", values_to = "measure_amount") %>% 
+  drop_na()  %>% # drop rows of ingediants that are not used in different recipes
   left_join(cake_abv, by = "code") # join to the abbreviations table
  
 # remove redundant columns
