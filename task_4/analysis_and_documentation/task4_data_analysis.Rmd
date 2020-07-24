@@ -1,31 +1,78 @@
 ---
-title: "R Notebook"
-output: html_notebook
+title: "task4_data_analysis"
+author: "Dan McG"
+date: "24/07/2020"
+output: 
+  html_document:
+    toc: TRUE
+    toc_float: TRUE
 ---
 
-Import our libriaries
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Halloween Candy Data Analysis Documentation  
+
+I have been asked to carry out data analysis on a halloween candy survey response. In this documentation I will outline the main process I followed in order to tidy up the data set and how I have gone about the analysis.
+
+### Required Libriaries
+The following libriaries are required.
 ```{r}
 library(tidyverse)
 library(here)
 ```
 
-Import Data set
-```{r}
-halloween_df <- read_csv(here("clean_data/halloween_candy_clean.csv"), col_types = c(col_character(),
-                                                                                    col_character(),
-                                                                                    col_double(),
-                                                                                    col_character(),
-                                                                                    col_character(),
-                                                                                    col_character(),
-                                                                                    col_character(),
-                                                                                    col_character(),
-                                                                                    col_character(),
-                                                                                    col_character(),
-                                                                                    col_double()
-                                                                                    ))
-```
+### Data Cleanser Summary
 
-1. What is the total number of candy ratings given across the three years. (number of candy ratings, not number of raters. Don’t count missing values)
+*For more details, please see data cleaning script file
+
+The raw data was presented in three excel files:    
+  1. boing-boing-candy-2015.xlsx - halloween candy responses from 2015  
+  2. boing-boing-candy-2016.xlsx - halloween candy responses from 2016  
+  3. boing-boing-candy-2017.xlsx - halloween candy responses from 2017  
+
+All 3 data sets had different column names and different candy bar responses which meant a considerable amount of data cleansing was required
+
+First I individually tidied each data set. This process involved choosing consistant column names. There were also a lot of columns that contained unrelated/unnecessary information so these were filtered out when the data was first loaded in. There were also plenty of invalid candy names that had to be later removed or renamed. This involved a considerable amount of research into different varients of candy.
+
+I made the decision to leave candy in which appeared in only one year. I thought this would make it easier if the candy started having response again in future years. I also don't think this would impact the analysis results in any negative way. I needed to append these instances to the other data sets, an example being 'Take 5' appears in 2017, but not the others. A similar decision was made with columns that weren't in 2015 but added in later years, such as country.
+
+Once this was done I combined all the columns and changed the data frame into a long format so that all candy bars and responses were in one column each as opposed to many columns.
+
+Most of the data entries in the columns were fine. The exceptions being the age column and the country column (I didn't have time to confirm the state column but would have like to do so).
+  The age column was straight forward enough, just the removal of characters and any invalid ages like 1000. I made the cut off age for trick or treating 75 as I thought any older was unlikely, however this did not change anything for the average each of people going out or not when I did change the upper limit to 100 to check. 
+  
+Country was a big challenge. First I removed all invalid entries such as 'Earth'. These were filtered out of the data-set completely so their response for candy bars would not have been taken into consideration for the analysis. There is probably an argument they should have been left in and changed to NA. 
+
+I then just tidied up all other countries so they were collinear. This was the final step before exporting the clean data to a .csv file.
+
+I had to return to my clean data-set however and arrange it by year descending, as there were so many columns missing from 2015, R struggled to determine the correct format for these columns and this led to a lot of errors during analysis.
+
+### Data Analysis
+
+Below I will outline the steps I took to answer certain questions around the cleaned halloween candy data set
+
+First, lets load in the data set
+```{r}
+halloween_df <- read_csv(here("clean_data/halloween_candy_clean.csv"), 
+                         col_types = c(col_character(),
+                                       col_character(),
+                                       col_double(),
+                                       col_character(),
+                                       col_character(),
+                                       col_character(),
+                                       col_character(),
+                                       col_character(),
+                                       col_character(),
+                                       col_character(),                                                                                col_double()
+                                                ))
+```
+I had to define column types here as I was at first getting a lot of errors reading in the data set
+
+#### What is the total number of candy ratings given across the three years. (number of candy ratings, not number of raters. Don’t count missing values)
+
+The most effevtive way I could think to do this was to count the response that were not NA
 ```{r}
 halloween_df %>%
   summarise(total_candy_ratings = sum(!is.na(Q06_response)))
@@ -33,7 +80,8 @@ halloween_df %>%
 
 511242 total candy ratings
 
-2. What was the average age of people who are going out trick or treating and the average age of people not going trick or treating?
+#### What was the average age of people who are going out trick or treating and the average age of people not going trick or treating?
+I had the age limit set to 75 for the age column. However the answers I got didn't change when I move the age limit to 100 implying these are a lot of data points around the mid 30s
 
 ```{r}
 halloween_df %>%
@@ -43,13 +91,13 @@ halloween_df %>%
 
 The average age of those not going out is 39 and the average age of those going out is 35
 
-3. For each of joy, despair and meh, which candy bar revived the most of these ratings?
+#### For each of joy, despair and meh, which candy bar revived the most of these ratings?
 
+This won't be the most efficient method of doing this, but I made a new data frame which grouped by response and candy name, and then individually filtered for the top result for each of the 3 responses.
 ```{r}
 response_count <- halloween_df %>% 
   group_by(Q06_candy_name, Q06_response) %>%
-  count(Q06_response, sort = TRUE) %>%
-  top_n(n = 1)
+  count(Q06_response, sort = TRUE) 
 
 # filter for each response
 response_count %>%
@@ -61,10 +109,10 @@ response_count %>%
 response_count %>%
   filter(Q06_response == "MEH") %>% head(1) # MEH
 ```
-
-Lollipops are the most meh out of the candy's
-Mary Janes bring the most despair
-Reese's Peanut Butter Cups brings the most joy
+  
+Lollipops are the most meh out of the candy's  
+Mary Janes bring the most despair  
+Reese's Peanut Butter Cups bring the most joy  
 
 
 For the next three questions, count despair as -1, joy as +1 and meh as 0.
@@ -74,32 +122,37 @@ rated_halloweenn_df <- halloween_df %>%
    mutate(Q06_response =  gsub("DESPAIR", -1, Q06_response)) %>%
    mutate(Q06_response =  gsub("MEH", 0, Q06_response))
 
-rated_halloweenn_df$Q06_response <- as.numeric(rated_halloweenn_df$Q06_response)
+rated_halloweenn_df$Q06_response <- as.numeric(rated_halloweenn_df$Q06_response) # ensure that Q06 is numeric
 
 ```
 
 
-5. What was the most popular candy bar by this rating system for each gender in the dataset?
-
+#### What was the most popular candy bar by this rating system for each gender in the dataset?
+I grouped by the query column, in this case gender, and the candy name before summing up the response score for each candy bar and displaying the top result for each group
 ```{r}
 rated_halloweenn_df %>%
   group_by(Q02_gender, Q06_candy_name) %>%
   summarise(Total = sum(Q06_response, na.rm = TRUE)) %>%
-  top_n(n = 1)
+  top_n(n = 1) # display the top result for each group
 ```
 
-6. What was the most popular candy bar in each year?
+#### What was the most popular candy bar in each year?
+Very similar to the previous question but now our column of interest is the year
 ```{r}
 rated_halloweenn_df %>%
   group_by(Q10_year, Q06_candy_name) %>%
   summarise(Total = sum(Q06_response, na.rm = TRUE)) %>%
   top_n(n = 1)
 ```
+Reese's Peanut Butter Cups were the most popular in 2015 and 2017 where as Kit Kats had a strong year in 2016 
 
+You may question the validity of this question. 2016 only has half the responses as 2017 which in turn only has half the responses as 2015.
 
-7. What was the most popular candy bar by this rating for people in US, Canada, UK and all other countries?
+#### What was the most popular candy bar by this rating for people in US, Canada, UK and all other countries? 
+I interpreted this as we wanted to know the most popular candy bar for the USA, Canada and the UK individually and aggregate the data for the rest of the world (row).
 
 ```{r}
+# check for America, UK and Canada
 rated_halloweenn_df %>%
   filter(Q04_country == "America" | Q04_country == "UK" | Q04_country == "Canada" ) %>%
   group_by(Q04_country, Q06_candy_name) %>%
@@ -113,4 +166,7 @@ rated_halloweenn_df %>%
   summarise(row_Total = sum(Q06_response, na.rm = TRUE)) %>%
   top_n(n = 1)
 ```
-
+America's favourite bar was Reese's Peanut Butter Cups (shock!)  
+Canada love a Kit-Kat  
+And just like with all its politcal agendas, the UK can't make its mind up  
+The rest of the world is also fond of the Kit-Kat  

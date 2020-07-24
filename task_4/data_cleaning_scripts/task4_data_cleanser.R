@@ -87,7 +87,6 @@ candy_2017 <- candy_2017 %>%
                      
 
 # 2016
-names(candy_2016)
 
 # rename 2016 column names
 candy_2016 <- rename(candy_2016,  "[Q01_going_out]" = "Are you going actually going trick or treating yourself?",
@@ -101,16 +100,15 @@ candy_2016 <- rename(candy_2016,  "[Q01_going_out]" = "Are you going actually go
 
 # remove square brackets
 names(candy_2016) <- gsub("\\[*\\]*", "", names(candy_2016))
-# 2015 has 5630 responsies, 2016 has 1259, 2017 has 2460
 
 
 # remove invalid candy names
-
 # Mary Janes already appears so we will drop that column 
 invalid_candy <- c(invalid_candy, "Mary Janes", # already in list
                    "Person of Interest Season 3 DVD Box Set (not including Disc 4 with hilarious outtakes)", # not candy
                    "Third Party M&M's") # not obvious which flavour these are
 candy_2016 <- candy_2016[ , !(names(candy_2016) %in% invalid_candy)]
+
 
 # rename candy bars to suitable names where applicable
 candy_2016 <- rename(candy_2016,"Mary Janes" = "Anonymous brown globs that come in black and orange wrappers", 
@@ -131,8 +129,7 @@ candy_2016 <- candy_2016 %>%
 
 
 # 2015
-names(candy_2015)
-
+# rename 2015 column names
 candy_2015 <- rename(candy_2015,  "[Q01_going_out]" = "Are you going actually going trick or treating yourself?",
                     "[Q03_age]" = "How old are you?", 
                     "[Q07_joy_other]" = "Please list any items not included above that give you JOY." ,
@@ -150,6 +147,7 @@ invalid_candy <- c(invalid_candy, "Peterson Brand Sidewalk Chalk", # not candy
                    )
 candy_2015 <- candy_2015[ , !(names(candy_2015) %in% invalid_candy)]
 
+# rename candy bars to suitable names where applicable
 candy_2015 <- rename(candy_2015,"Mary Janes" = "Anonymous brown globs that come in black and orange wrappers", 
                      "Chick-o-Sticks" = "Chick-o-Sticks (we don’t know what that is)",
                      "Gummy Bears" = "Gummy Bears straight up",
@@ -187,19 +185,22 @@ candy_2016[missing_cols] <- NA
 missing_cols <- setdiff(all_columns, names(candy_2015))
 candy_2015[missing_cols] <- NA
 
-# combine our tables
 
+# combine our tables
 halloween_candy_df <- rbind(candy_2015, candy_2016, candy_2017)
 
-# make the table in long format
 
+# make the table in long format so all our response are in the same column
 halloween_candy_df <- pivot_longer(halloween_candy_df, cols = !starts_with("Q"), names_to = "Q06_candy_name", values_to = "Q06_response")
+
 
 # order columns alphabetically
 halloween_candy_df <- halloween_candy_df[,order(colnames(halloween_candy_df))]
 
+
 # confirm column classes
 sapply(halloween_candy_df, class)
+
 
 # now we can finally clean our data entries
 
@@ -229,16 +230,16 @@ halloween_candy_df %>%
 
 # all acceptable
 
-# lets fix Q3
+# lets fix Q3 age
 
 halloween_candy_df$Q03_age <- gsub("[^[:digit:]., ]","", halloween_candy_df$Q03_age) # remove all characters
 halloween_candy_df$Q03_age <- as.numeric(halloween_candy_df$Q03_age) # change all remaining ones to the correct format
 halloween_candy_df$Q03_age <- round(halloween_candy_df$Q03_age) # round up
 halloween_candy_df <-  halloween_candy_df %>%
-  mutate(Q03_age = ifelse(Q03_age > 100 
-                             | Q03_age < 1, NA, Q03_age)) # filter out ages between 0 and 100 (sorry older people)
+  mutate(Q03_age = ifelse(Q03_age > 75
+                             | Q03_age < 1, NA, Q03_age)) # filter out ages between 0 and 75 (sorry older people)
 
-# lets fix Q4
+# lets fix Q4 counties
 
 # title all countries
 halloween_candy_df$Q04_country <- str_to_title(halloween_candy_df$Q04_country)
@@ -274,12 +275,14 @@ halloween_candy_df$Q04_country <- replace(halloween_candy_df$Q04_country,grep("[
 # get rid of any entry with only one character entry
 halloween_candy_df$Q04_country <- replace(halloween_candy_df$Q04_country,grep("^[?a-zA-Z0-9]$",halloween_candy_df$Q04_country), NA)
 
-# change all vaiartions of USA to America (need to exclude the UAE)
+
+# change all vaiartions of USA to America
 halloween_candy_df$Q04_country <- replace(halloween_candy_df$Q04_country,grep("^[TtUu][a-zA-MO-Z\\. ]*[Ss][a-zA-Z\\.!? ]*[Aa]*$",halloween_candy_df$Q04_country),"America") # this will pick up the majority
 halloween_candy_df$Q04_country <- replace(halloween_candy_df$Q04_country,grep("[ .?A']*[Mm][ue][r][i]*[c][a]$",halloween_candy_df$Q04_country),"America")
 halloween_candy_df$Q04_country <- replace(halloween_candy_df$Q04_country,grep("[Uu][Ss][Aa]",halloween_candy_df$Q04_country),"America")
 halloween_candy_df$Q04_country <- replace(halloween_candy_df$Q04_country,grep("[Mu][uU][Rr]{2}",halloween_candy_df$Q04_country),"America")
-halloween_candy_df$Q04_country <- replace(halloween_candy_df$Q04_country,grep("[E][u][a]",halloween_candy_df$Q04_country),"America")
+halloween_candy_df$Q04_country <- replace(halloween_candy_df$Q04_country,grep("[E][u][a]",halloween_candy_df$Q04_country),"America") # French USA assumption
+
 
 # get the UK in a union again
 halloween_candy_df$Q04_country <- replace(halloween_candy_df$Q04_country,grep("^[Uu][a-zA-Z\\. ]*[Kkd]",halloween_candy_df$Q04_country),"UK")
@@ -291,12 +294,15 @@ halloween_candy_df$Q04_country <- replace(halloween_candy_df$Q04_country,grep("^
 # get Canada's house in order
 halloween_candy_df$Q04_country <- replace(halloween_candy_df$Q04_country,grep("[C][a][n]",halloween_candy_df$Q04_country),"Canada")
 
+
 # sort out The Netherlands
 halloween_candy_df$Q04_country <- replace(halloween_candy_df$Q04_country,grep("[Nn][Ee][Tt][Hh][Ee]",halloween_candy_df$Q04_country),"The Netherlands")
 
 
+
 # fix Spain
 halloween_candy_df$Q04_country <- replace(halloween_candy_df$Q04_country,grep("[Ee][Ss][Pp][Aa]",halloween_candy_df$Q04_country),"Spain")
+
 
 # fix the states!
 halloween_candy_df <-  halloween_candy_df %>%
@@ -308,12 +314,15 @@ halloween_candy_df <-  halloween_candy_df %>%
                              | Q04_country == "North Carolina",
                              "America", Q04_country))
          
+
 # recaptalise UAE
 halloween_candy_df$Q04_country <- replace(halloween_candy_df$Q04_country,grep("[U][a][e]",halloween_candy_df$Q04_country),"UAE")
+
 
 # sory by year so 2017, the most complete data set, is the reference data
 halloween_candy_df <- halloween_candy_df %>%
   arrange(desc(halloween_candy_df$Q10_year))
+
 
 # export clean data to csv file
 write_csv(halloween_candy_df, here("clean_data/halloween_candy_clean.csv"))
