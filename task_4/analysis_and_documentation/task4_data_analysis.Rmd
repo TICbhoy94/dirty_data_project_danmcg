@@ -1,0 +1,116 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+Import our libriaries
+```{r}
+library(tidyverse)
+library(here)
+```
+
+Import Data set
+```{r}
+halloween_df <- read_csv(here("clean_data/halloween_candy_clean.csv"), col_types = c(col_character(),
+                                                                                    col_character(),
+                                                                                    col_double(),
+                                                                                    col_character(),
+                                                                                    col_character(),
+                                                                                    col_character(),
+                                                                                    col_character(),
+                                                                                    col_character(),
+                                                                                    col_character(),
+                                                                                    col_character(),
+                                                                                    col_double()
+                                                                                    ))
+```
+
+1. What is the total number of candy ratings given across the three years. (number of candy ratings, not number of raters. Don’t count missing values)
+```{r}
+halloween_df %>%
+  summarise(total_candy_ratings = sum(!is.na(Q06_response)))
+```
+
+511242 total candy ratings
+
+2. What was the average age of people who are going out trick or treating and the average age of people not going trick or treating?
+
+```{r}
+halloween_df %>%
+  group_by(Q01_going_out) %>%
+  summarise(average_age = round(mean(Q03_age, na.rm = TRUE)))
+```
+
+The average age of those not going out is 39 and the average age of those going out is 35
+
+3. For each of joy, despair and meh, which candy bar revived the most of these ratings?
+
+```{r}
+response_count <- halloween_df %>% 
+  group_by(Q06_candy_name, Q06_response) %>%
+  count(Q06_response, sort = TRUE) %>%
+  top_n(n = 1)
+
+# filter for each response
+response_count %>%
+  filter(Q06_response == "JOY") %>% head(1) # JOY
+
+response_count %>%
+  filter(Q06_response == "DESPAIR") %>% head(1) # DESPAIR
+
+response_count %>%
+  filter(Q06_response == "MEH") %>% head(1) # MEH
+```
+
+Lollipops are the most meh out of the candy's
+Mary Janes bring the most despair
+Reese's Peanut Butter Cups brings the most joy
+
+
+For the next three questions, count despair as -1, joy as +1 and meh as 0.
+```{r}
+rated_halloweenn_df <- halloween_df %>%
+  mutate(Q06_response =  gsub("JOY", 1, Q06_response)) %>%
+   mutate(Q06_response =  gsub("DESPAIR", -1, Q06_response)) %>%
+   mutate(Q06_response =  gsub("MEH", 0, Q06_response))
+
+rated_halloweenn_df$Q06_response <- as.numeric(rated_halloweenn_df$Q06_response)
+
+```
+
+
+5. What was the most popular candy bar by this rating system for each gender in the dataset?
+
+```{r}
+rated_halloweenn_df %>%
+  group_by(Q02_gender, Q06_candy_name) %>%
+  summarise(Total = sum(Q06_response, na.rm = TRUE)) %>%
+  top_n(n = 1)
+```
+
+6. What was the most popular candy bar in each year?
+```{r}
+rated_halloweenn_df %>%
+  group_by(Q10_year, Q06_candy_name) %>%
+  summarise(Total = sum(Q06_response, na.rm = TRUE)) %>%
+  top_n(n = 1)
+```
+
+
+7. What was the most popular candy bar by this rating for people in US, Canada, UK and all other countries?
+
+```{r}
+rated_halloweenn_df %>%
+  filter(Q04_country == "America" | Q04_country == "UK" | Q04_country == "Canada" ) %>%
+  group_by(Q04_country, Q06_candy_name) %>%
+  summarise(Total = sum(Q06_response, na.rm = TRUE)) %>%
+  top_n(n = 1)
+
+# check for rest of world
+rated_halloweenn_df %>%
+  filter(Q04_country != "America" & Q04_country != "UK" & Q04_country != "Canada" ) %>%
+   group_by(Q06_candy_name) %>%
+  summarise(row_Total = sum(Q06_response, na.rm = TRUE)) %>%
+  top_n(n = 1)
+```
+
