@@ -16,9 +16,10 @@ dec_data_clean <- read_csv(here("clean_data/decathlon_data_clean.csv"))
 
 1. Who had the longest long jump seen in the data?
 ```{r}
+# simply arrange by long jump score and select the 1st entry
 dec_data_clean %>%
-  arrange(desc(long_jump)) %>% # arrabge rows by long jump distance descending
-  head(1) # limit the results to 1 to give the best performer in the data set
+  arrange(desc(long_jump)) %>% 
+  head(1) 
 ```
 
 Clay had the longest long jump
@@ -26,17 +27,19 @@ Clay had the longest long jump
 2. What was the average 100m time in each competition?
 
 ```{r}
+# group by the different competitions the the data set and then calculate the mean for each category and format the same as the data
 dec_data_clean %>%
-  group_by(competition) %>% # group by the different competitions the the data set
-  summarise(average_100m = round(mean(run_100m), 2)) # calculate the mean for each category and format the same as the data
+  group_by(competition) %>% 
+  summarise(average_100m = round(mean(x100m), 2)) 
 ```
 
 3. Who had the highest total points across both competitions?
 
 ```{r}
+# arrange rows by event points descending and select the 1st entry
 dec_data_clean %>%
-  arrange(desc(points)) %>% # arrabge rows by event points descending
-  head(1) # limit the results to 1 to give the best performer in the data set
+  arrange(desc(points)) %>% 
+  head(1)
 ```
 
 Serbie had the highest points across both competitions
@@ -44,8 +47,8 @@ Serbie had the highest points across both competitions
 4. What was the shot-put scores for the top three competitors in each competition?
 ```{r}
 dec_data_clean %>%
-  arrange(rank) %>% # arange by rank
-  select(athlete_name, shot_put, rank, competition) %>% # select relevant columns
+  arrange(rank) %>% 
+  select(athlete_name, shot_put, rank, competition) %>% 
   head(6) # limit to the top 6 results in order to get the data for the top 3 competitors in each competition
 ```
 
@@ -53,7 +56,7 @@ dec_data_clean %>%
 
 ```{r}
 dec_data_clean %>%
-  mutate(over_50_in_400m = (run_400m > 50)) %>% # create a new column that is a logical of whether or not athlete did the 400m over 50 seconds
+  mutate(over_50_in_400m = (x400m > 50)) %>% # create a new column that is a logical of whether or not athlete did the 400m over 50 seconds
   group_by(over_50_in_400m) %>% 
   summarise(average_points = mean(points))
 ```

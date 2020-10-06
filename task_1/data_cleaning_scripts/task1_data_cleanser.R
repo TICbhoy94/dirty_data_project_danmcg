@@ -3,6 +3,7 @@
 # load libraries
 library(tidyverse)
 library(here)
+library(janitor)
 
 # load in data set
 dec_data <- read_rds(here("raw_data/decathlon.rds"))
@@ -12,6 +13,8 @@ dim(dec_data)
 sapply(dec_data, class)
 
 # rename column rows
+dec_data <- clean_names(dec_data)
+
 dec_data <- dec_data %>%
   rename(run_100m = `100m`,
          long_jump = Long.jump,

@@ -46,9 +46,10 @@ cake_recipes <- read_csv(here("clean_data/cake_ingrediants_clean.csv"))
 #### Which cake has the most cocoa in it?
 All that is needed for this task is to filter out cakes that don't have cocoa in their recipes and then sort to have the one with the most cocoa at the top of the filtered list. 
 ```{r}
+# filter by cocoa then arrange by the amount of table spoons
 cake_recipes %>%
-  filter(str_detect(str_to_lower(ingrediant_unit), "cocoa")) %>% # filter by cocoa
-  arrange(desc(measure_amount)) %>% # arrange by the amount of table spoons
+  filter(str_detect(str_to_lower(ingredient_unit), "cocoa")) %>% 
+  arrange(desc(measure_amount)) %>% 
   head(1)
 ```
  One Bowl Chocolate contains the most cocoa
@@ -56,17 +57,16 @@ cake_recipes %>%
  
  
  
- 
 #### How many cups of ingrediants are used in total for sponge cake?
-My interpretation of this was the question was after the total volume of ingrediants measured in cups.
+My interpretation of this was the question was after the total volume of ingredients measured in cups.
  
 ```{r}
 cake_recipes %>%
   filter(cake == "Sponge") %>% # find the sponge cake recipe
-  filter(str_detect(str_to_lower(ingrediant_unit), "[(]cup[)]")) %>% # filter by all ingrediants measured by cups
+  filter(str_detect(str_to_lower(ingredient_unit), "[(]cup[)]")) %>% # filter by all ingredients measured by cups
   summarise(total_cups = sum(measure_amount)) # sum up the total amount of cups used
 ```
- 3.5 cups worth of ingrediants are used in total for sponge cake. 
+ 3.5 cups worth of ingredients are used in total for sponge cake. 
  
  
  
@@ -78,10 +78,10 @@ cake_recipes %>%
  
 ```{r}
 tea_spoon_occuaances <- cake_recipes %>%
-  filter(str_detect(str_to_lower(ingrediant_unit), "[(]teaspoon[)]"))  # filter by recipes that use teaspoons 
+  filter(str_detect(str_to_lower(ingredient_unit), "[(]teaspoon[)]"))  # filter by recipes that use teaspoons 
   
   
-length(unique(tea_spoon_occuaances$ingrediant_unit)) # count unique instances of these ingrediants
+length(unique(tea_spoon_occuaances$ingredient_unit)) # count unique instances of these ingredients
 ```
  
 There are 8 ingrediants that are measured in teaspoons 
@@ -95,16 +95,20 @@ I attempted to come up with my own definition of 'uniqueness' for this question.
 
 This uniquess score was then appended to our make cake recipe data frame and each cake was summed up to give an overall 'uniqueness score'.
 ```{r}
-# create a table that counts how many times each ingrediant appears which will represent its 'uniqueness'
-ingrediant_uniqueness <- cake_recipes %>%
-  group_by(ingrediant_unit) %>%
-  summarise(ingrediant_count = n()) %>%
-  arrange(desc(ingrediant_count)) %>%
-  mutate(uniqueness_rank = rank(ingrediant_count, ties.method = "average")) # use the rank function to give each ingrediant a score based on how many times it appears in the data set
+# create a table that counts how many times each ingredient appears which will represent its 'uniqueness'
+cake_recipes  <- cake_recipes %>%
+  mutate(ingredient = str_extract(ingredient_unit, "[A-Za-z ]+"))# separate out ingredient unit column as the same ingredient may appear but with a different unit of measurement
+  
+
+ingredient_uniqueness <- cake_recipes %>%
+  group_by(ingredient) %>%
+  summarise(ingredient_count = n()) %>%
+  arrange((ingredient_count)) %>%
+  mutate(uniqueness_rank = rank(ingredient_count, ties.method = "average")) # use the rank function to give each ingredient a score based on how many times it appears in the data set
 
 # join our uniqueness value to our main table and then sum each cakes score
 cake_recipes %>%
-  left_join(ingrediant_uniqueness, by = "ingrediant_unit") %>%
+  left_join(ingredient_uniqueness, by = "ingredient") %>%
   group_by(cake) %>%
   summarise(uniqueness_score = sum(uniqueness_rank)) %>% 
   arrange(uniqueness_score)  %>%
@@ -113,10 +117,10 @@ cake_recipes %>%
 
 # however this request could also be seen as the the recipe that has the most ingrediants that only appear in the data set once
 cake_recipes %>%
-  left_join(ingrediant_uniqueness, by = "ingrediant_unit") %>%
-  filter(ingrediant_count == 1) %>%
+  left_join(ingredient_uniqueness, by = "ingredient") %>%
+  filter(ingredient_count == 1) %>%
   group_by(cake) %>%
-  summarise(uniqueness_score = sum(ingrediant_count)) %>% 
+  summarise(uniqueness_score = sum(ingredient_count)) %>% 
   arrange(desc(uniqueness_score)) %>%
   head(1)
 ```
@@ -127,8 +131,8 @@ According to my definition, Angle Cake has the most unique ingrediants. And Ange
  
 The leg work for this questions was already done in the previous question so was easy enough to do. 
 ```{r}
-ingrediant_uniqueness %>%
-  filter(ingrediant_count == 1)
+ingredient_uniqueness %>%
+  filter(ingredient_count == 1)
 ```
 
  
