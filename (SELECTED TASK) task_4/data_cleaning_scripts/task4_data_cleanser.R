@@ -55,7 +55,6 @@ invalid_candy <- c("Bonkers (the board game)", # not candy
                                             "Abstained from M&M'ing.", # not a product
                                             "Minibags of chips", # not candy
                                             "Mint Juleps", # cocktail so not a candy 
-                                            "Pencils", # not candy
                                             "Real Housewives of Orange County Season 9 Blue-Ray", # not candy
                                             "Reggie Jackson Bar", # discontinued in the 80s
                                             "Sandwich-sized bags filled with BooBerry Crunch", # not candy
@@ -66,7 +65,7 @@ invalid_candy <- c("Bonkers (the board game)", # not candy
                                             "Whole Wheat anything", # not candy
                                             "Any full-sized candy bar" # was originally left in but skews all results
                                             )
-
+# filter out invalid candy
 candy_2017 <- candy_2017[ , !(names(candy_2017) %in% invalid_candy)]
 
 # rename candy bars to suitable names where applicable

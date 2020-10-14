@@ -17,6 +17,7 @@ knitr::opts_chunk$set(echo = TRUE)
 I have been asked to carry out data analysis on a halloween candy survey response. In this documentation I will outline the main process I followed in order to tidy up the data set and how I have gone about the analysis.
 
 ### Required Libriaries
+
 The following libriaries are required.
 ```{r}
 library(tidyverse)
@@ -36,7 +37,7 @@ All 3 data sets had different column names and different candy bar responses whi
 
 First I individually tidied each data set. This process involved choosing consistant column names. There were also a lot of columns that contained unrelated/unnecessary information so these were filtered out when the data was first loaded in. There were also plenty of invalid candy names that had to be later removed or renamed. This involved a considerable amount of research into different varients of candy.
 
-I made the decision to leave candy in which appeared in only one year. I thought this would make it easier if the candy started having response again in future years. I also don't think this would impact the analysis results in any negative way. I needed to append these instances to the other data sets, an example being 'Take 5' appears in 2017, but not the others. A similar decision was made with columns that weren't in 2015 but added in later years, such as country.
+I made the decision to leave out candy entries which appeared in only one year. The cleaning code is easily laid out so if someone wanted to add a candy back in, they could do so simply. I also don't think this would impact the analysis results in any negative way. I needed to append these instances to the other data sets, an example being 'Take 5' appears in 2017, but not the others. A similar decision was made with columns that weren't in 2015 but added in later years, such as country.
 
 Once this was done I combined all the columns and changed the data frame into a long format so that all candy bars and responses were in one column each as opposed to many columns.
 

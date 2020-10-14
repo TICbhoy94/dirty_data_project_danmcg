@@ -22,7 +22,7 @@ Now lets load the data set
 seabird_df <- read_csv(here("clean_data/seabird_data_clean.csv"))
 ```
 
-1. Which bird had the most individual sightings?
+Which bird had the most individual sightings?
 
 ```{r}
 seabird_df %>%
@@ -34,7 +34,7 @@ seabird_df %>%
 
 The Wandering Alabtross sensi lato PL2 was had the most individual sightings with 3104 different observations
 
-2. Which bird had the highest total count?
+Which bird had the highest total count?
 
 ```{r}
 seabird_df %>%
@@ -46,7 +46,7 @@ seabird_df %>%
 
 The Black-billed gull had the hightest total count with 7732 observed
 
-3. Which bird had the highest total count above a latitude of -30?
+Which bird had the highest total count above a latitude of -30?
 ```{r}
 seabird_df %>%
   filter(LAT > -30) %>%
@@ -58,7 +58,7 @@ seabird_df %>%
 
 The Wedge-tailed shearwater has the highest total count above a latitude of -30 with 855 observed in total
 
-4. How many different types of birds were only ever seen in groups of 1?
+How many different types of birds were only ever seen in groups of 1?
 ```{r}
 single_sightings <- seabird_df %>%
   group_by(species_common_name) %>% 
@@ -72,9 +72,9 @@ count_lonely_birds
 
 73 different types of birds have only ever been spotted in groups of 1
 
-5. How many penguins were seen? (Hint: there are many types of penguin)
+How many penguins were seen?
 ```{r}
-penguin_df <- seabird_df[grep("[::punct:: ]*[Pp]enguin[ ::punct::]*",seabird_df$species_common_name, ), ]
+penguin_df <- seabird_df[grep("[::punct:: ]*[Pp]enguin[ ::punct::]*",seabird_df$species_common_name, ), ] # make a separate df for all species of penguins
 
 no_penguin_species <- length(unique(penguin_df$species_common_name))
 

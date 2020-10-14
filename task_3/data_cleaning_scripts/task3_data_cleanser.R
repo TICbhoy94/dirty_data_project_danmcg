@@ -10,7 +10,7 @@ names_sheets <- excel_sheets(here("raw_data/seabirds.xls"))
 names_sheets
 
 
-# iterate through all the tabs of the spreadsheet and store them in a this 
+# iterate through all the tabs of the spreadsheet and store them in a list 
 all_tabs <- list()
 for(this_sheet in names_sheets){
   all_tabs[[this_sheet]] <- read_excel(here("raw_data/seabirds.xls"), sheet = this_sheet)
